@@ -500,10 +500,23 @@ MAT* matriceTelep (u_int n)
 	}
 	return res;
 }
-
+Real valeurEqEnMat(u_int L,u_int C, SMAT * smat)
+{
+	 NODE * cur=&(smat->rows[L]);
+	
+		while(cur->val>=0.0&&cur->col!=C)
+		{
+		  cur=cur->next;
+		}
+		if(cur->col==C && cur->val>=0.0 )
+		{
+			return cur->val;
+		}
+		return 0;
+}
 void main()
 {
-	Real alfa = 0.85;
+	/*Real alfa = 0.85;
   VEC *v;
   v = v_get(3);
   v_output(stdout,v);
@@ -522,30 +535,31 @@ void main()
   fclose(fp);
   m_output(stdout,G);
   
-  v=v_get(G->m);
+  v=v_get(G->m);*/
+  FILE *fp;
  /* typedef struct
 {
   u_int dim;
   Real *ve;
 } VEC;*/
 
-	for(u_int i=0;i<v->dim;i++)
+	/*for(u_int i=0;i<v->dim;i++)
 	{
 		v->ve[i]=1.0/v->dim;
-	}
+	}*/
 	
-	v_output(stdout, v);
+	//v_output(stdout, v);
 	
 	// noeuds absorbants
-	VEC * a = returnA(G);
+	//VEC * a = returnA(G);
 	//removeAbs(G);
 	
 	//stocausticite
-	MAT *H = mToH(G);
+	//MAT *H = mToH(G);
 	
 	//ergodicite
 	
-	MAT * telep = matriceTelep(H->m);
+/*	MAT * telep = matriceTelep(H->m);
 	VEC * res=v_get(H->m);
 	v_cp(v,res);
 	
@@ -567,7 +581,7 @@ void main()
 			
 		}
 		
-	}
+	}*/
 	
 	/*for (u_int i = 0; i < H->m; ++i)
 	{
@@ -586,7 +600,7 @@ void main()
 	//VEC *resultat = multiplyMToV(H, v);
 	//v_output(stdout, resultat);
   
-    v_output(stdout, res);
+    //v_output(stdout, res);
 
   
   //MAT *Hcarre = multiplyMToM(H, H);
@@ -606,10 +620,90 @@ void main()
   SMAT *SG;
   fp = fopen("dataset/genetic.dat","r");
   SG = sm_input(fp);
-  sm_output(stdout, SG);
+
   
-  VEC * aBis=v_get(SG->m);
+  VEC * pi=v_get(SG->m);
+  VEC * a=v_get(SG->m);
   for(u_int i=0;i<SG->m;i++)
+  {
+	//  NODE * cur=&(SG->rows[i]);
+	pi->ve[i]=1.0/SG->m;
+	  NODE * cur=&(SG->rows[i]);
+
+	  u_int nb=0;
+		
+		while(cur->val>=0.0)
+		{
+		
+		  cur=cur->next;
+		  nb++;
+		}
+		if(nb!=0)
+		{
+			cur=&(SG->rows[i]);
+			 while(cur->val>=0.0)
+			{
+				 
+				cur->val=1.0/nb;
+			cur=cur->next;
+			
+			}
+		}
+		else
+		{
+			
+			a->ve[i]=1;
+		}
+	}
+	
+	
+	
+	Real alfa =0.85;
+	
+	
+	
+  	for (u_int n = 0; n <3; ++n)
+	{
+		VEC * newPi=v_get(SG->m);
+		
+		for (u_int i = 0; i < SG->m; ++i)
+		{
+			Real totalTemp=0;
+			Real totalTempA=0;
+			for (u_int j = 0; j < SG->m; ++j)
+			{
+				
+				totalTempA += pi->ve[j] * a->ve[j];
+				totalTemp += pi->ve[j] * valeurEqEnMat(j,i, SG);
+			
+			}	
+			
+			newPi->ve[i]=alfa*totalTemp+(((totalTempA)*alfa)+1-alfa)/SG->m;
+		}
+		
+		v_cp(newPi,pi);
+		v_free(newPi);
+	}
+//v_output(stdout, pi);
+Real sum=0;
+Real max=-1;
+for (u_int n = 0; n < SG->m; ++n)
+	{
+		if(pi->ve[n]>max)
+		{
+			max=pi->ve[n];
+		}
+		sum+=pi->ve[n];
+	}
+	printf("Somme:%f Max : %f\r\n",sum, max);
+	v_free(pi);
+	sm_free(SG);
+	
+	v_free(a);
+ //sm_output(stdout, SG);
+  
+  //VEC * aBis=v_get(SG->m);
+ /* for(u_int i=0;i<SG->m;i++)
   {
 	  NODE * cur=&(SG->rows[i]);
 	  u_int nb=0;
@@ -622,7 +716,7 @@ void main()
 		{
 			  while(cur->col!=-1)
 			{
-				cur->val=1.0/nb;
+				//cur->val=1.0/nb;
 			cur=cur->next;
 			
 			}
@@ -639,21 +733,8 @@ void main()
 		for (u_int i = 0; i < H->m; ++i)
 		{
 		}
-	}
-  /*typedef struct graphnode
-{
-  u_int col;
-  Real val;
-  struct graphnode *next;
-} NODE;
+	}*/
 
-typedef struct
-{
-  u_int m, n;
-  NODE *rows;
-} SMAT;
-*/
-  
   
   fclose(fp);
   
@@ -662,9 +743,9 @@ typedef struct
   
   
   
-  fp = fopen("dataset/test.dat","w");
-  sm_output(fp,SG);
-  sm_free(SG);
+ // fp = fopen("dataset/test.dat","w");
+ // sm_output(fp,SG);
+  //sm_free(SG);
   
   
   
